@@ -1,175 +1,140 @@
-# Assignment Report: CRUD API Development, Deployment & Testing
-
-- **Subject / Assignment**: Assignment 6 - CRUD API Development & Deployment
-- **Developer / Student**: Ved Upadhyay
-- **GitHub Repository**: https://github.com/ved645/crud-api-assignment
-- **Live Deployed URL**: https://product-crud-api-13j6.onrender.com
-- **Database**: MongoDB Atlas Cloud Database (`cluster0.dveapgj.mongodb.net`)
-- **Hosting Provider**: Render (Web Service)
-- **API Testing Tool**: Postman
+# Academic Assignment Report: CRUD API Development, Cloud Deployment & Postman Testing
 
 ---
 
-## 1. Project Overview
+## 👤 Student Information
 
-This project implements a production-grade RESTful API performing complete Create, Read, Update, and Delete (CRUD) operations on a `Product` entity. The backend is built using Node.js and Express.js, connected to a cloud-hosted MongoDB Atlas database via Mongoose ODM, and deployed to Render for 24/7 web hosting.
-
-### Tech Stack
-- **Runtime Environment**: Node.js (v24.x)
-- **Web Framework**: Express.js (v4.x)
-- **Database & ODM**: MongoDB Atlas & Mongoose (v8.x)
-- **Deployment Platform**: Render
-- **Version Control**: Git & GitHub
-- **API Testing**: Postman
-
----
-
-## 2. Data Model (Product Schema)
-
-The database schema is defined in `models/Product.js`:
-
-| Field | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `_id` | ObjectId | Auto | Unique MongoDB Identifier |
-| `name` | String | Yes | Name of the product (max 120 chars) |
-| `description` | String | Yes | Detailed description of the product |
-| `price` | Number | Yes | Price (must be a positive number) |
-| `category` | String | Yes | Product category (e.g., Electronics) |
-| `inStock` | Boolean | Optional | Stock availability (Default: `true`) |
-| `createdAt` | Date | Auto | Timestamp of creation |
-| `updatedAt` | Date | Auto | Timestamp of last modification |
+| Field | Detail |
+| :--- | :--- |
+| **Student Name** | Ved Upadhyay |
+| **PRN** | 202401040207 |
+| **Class** | WT3 |
+| **Branch** | Computer Engineering |
+| **Assignment Title** | Assignment 6: CRUD API with Cloud Database, Deployment & Testing |
+| **Live Deployed API URL** | https://product-crud-api-13j6.onrender.com |
+| **GitHub Repository** | https://github.com/ved645/crud-api-assignment |
 
 ---
 
-## 3. API Endpoints Specification
+## 1. Problem Statement & Objectives
+
+> **Problem Statement**:
+> *"Create an API to perform CRUD operation in the database and deploy the application on any web hosting provider and test the API using Postman."*
+
+### Key Objectives:
+1. Design and develop a RESTful API implementing full CRUD (Create, Read, Update, Delete) functionality.
+2. Integrate a production cloud database (MongoDB Atlas) using an Object Data Modeling (ODM) library (Mongoose).
+3. Host and deploy the web service to a cloud web hosting provider (Render) with continuous deployment enabled from GitHub.
+4. Verify and validate all endpoints using Postman automated test assertions and parameter chaining.
+
+---
+
+## 2. Technology Stack
+
+- **Backend Framework**: Node.js with Express.js
+- **Database**: MongoDB Atlas (Cloud NoSQL Database)
+- **Object Data Modeling (ODM)**: Mongoose
+- **Web Hosting Provider**: Render (Node Web Service)
+- **Version Control & CI/CD**: Git & GitHub
+- **API Testing & Verification**: Postman (v10/v11)
+
+---
+
+## 3. Database Schema Design
+
+The `Product` entity model is implemented in `models/Product.js`:
+
+```javascript
+const mongoose = require('mongoose');
+
+const productSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Product name is required'],
+      trim: true,
+      maxlength: [120, 'Name cannot exceed 120 characters']
+    },
+    description: {
+      type: String,
+      required: [true, 'Product description is required'],
+      trim: true,
+      maxlength: [1000, 'Description cannot exceed 1000 characters']
+    },
+    price: {
+      type: Number,
+      required: [true, 'Product price is required'],
+      min: [0, 'Price must be a positive number']
+    },
+    category: {
+      type: String,
+      required: [true, 'Product category is required'],
+      trim: true
+    },
+    inStock: {
+      type: Boolean,
+      default: true
+    }
+  },
+  {
+    timestamps: true
+  }
+);
+
+module.exports = mongoose.model('Product', productSchema);
+```
+
+---
+
+## 4. REST API Endpoint Directory
 
 Base URL: `https://product-crud-api-13j6.onrender.com`
 
 | Operation | HTTP Method | Endpoint | Description | Status Code |
 | :--- | :--- | :--- | :--- | :--- |
-| **Welcome** | `GET` | `/` | API status and endpoint directory | `200 OK` |
-| **Health Check** | `GET` | `/api/health` | Server uptime & status check | `200 OK` |
-| **CREATE** | `POST` | `/api/products` | Create a new product | `201 Created` |
-| **READ ALL** | `GET` | `/api/products` | Retrieve all products (supports query filters) | `200 OK` |
-| **READ ONE** | `GET` | `/api/products/:id` | Retrieve single product by ObjectId | `200 OK` / `404` |
-| **UPDATE** | `PUT` | `/api/products/:id` | Update product fields by ObjectId | `200 OK` / `404` |
-| **DELETE** | `DELETE` | `/api/products/:id` | Delete product by ObjectId | `200 OK` / `404` |
+| **Service Info** | `GET` | `/` | API status and endpoint directory | `200 OK` |
+| **Health Check** | `GET` | `/api/health` | Service uptime and timestamp | `200 OK` |
+| **CREATE** | `POST` | `/api/products` | Create a new product in the database | `201 Created` |
+| **READ ALL** | `GET` | `/api/products` | Retrieve all products (supports filtering & search) | `200 OK` |
+| **READ ONE** | `GET` | `/api/products/:id` | Fetch specific product by MongoDB ObjectId | `200 OK` |
+| **UPDATE** | `PUT` | `/api/products/:id` | Modify an existing product record | `200 OK` |
+| **DELETE** | `DELETE` | `/api/products/:id` | Delete product record from database | `200 OK` |
 
 ---
 
-## 4. Sample Requests and Responses
+## 5. Deployment Details
 
-### 4.1 CREATE Product
-- **Request**: `POST /api/products`
-- **Headers**: `Content-Type: application/json`
-- **Body**:
-```json
-{
-  "name": "Wireless Mechanical Keyboard",
-  "description": "RGB backlit mechanical keyboard with hot-swappable switches",
-  "price": 89.99,
-  "category": "Electronics",
-  "inStock": true
-}
-```
-- **Response**: `201 Created`
-```json
-{
-  "success": true,
-  "message": "Product created successfully",
-  "data": {
-    "name": "Wireless Mechanical Keyboard",
-    "description": "RGB backlit mechanical keyboard with hot-swappable switches",
-    "price": 89.99,
-    "category": "Electronics",
-    "inStock": true,
-    "_id": "6b00477d72de0dc28c18249f",
-    "createdAt": "2026-11-20T13:13:33.872Z",
-    "updatedAt": "2026-11-20T13:13:33.872Z",
-    "__v": 0
-  }
-}
-```
-
-### 4.2 READ All Products
-- **Request**: `GET /api/products`
-- **Response**: `200 OK`
-```json
-{
-  "success": true,
-  "count": 1,
-  "data": [
-    {
-      "_id": "6b00477d72de0dc28c18249f",
-      "name": "Wireless Mechanical Keyboard",
-      "description": "RGB backlit mechanical keyboard with hot-swappable switches",
-      "price": 89.99,
-      "category": "Electronics",
-      "inStock": true,
-      "createdAt": "2026-11-20T13:13:33.872Z",
-      "updatedAt": "2026-11-20T13:13:33.872Z"
-    }
-  ]
-}
-```
-
-### 4.3 READ Product by ID
-- **Request**: `GET /api/products/6b00477d72de0dc28c18249f`
-- **Response**: `200 OK`
-
-### 4.4 UPDATE Product
-- **Request**: `PUT /api/products/6b00477d72de0dc28c18249f`
-- **Body**:
-```json
-{
-  "price": 79.99,
-  "inStock": false
-}
-```
-- **Response**: `200 OK`
-```json
-{
-  "success": true,
-  "message": "Product updated successfully",
-  "data": {
-    "_id": "6b00477d72de0dc28c18249f",
-    "name": "Wireless Mechanical Keyboard",
-    "price": 79.99,
-    "inStock": false
-  }
-}
-```
-
-### 4.5 DELETE Product
-- **Request**: `DELETE /api/products/6b00477d72de0dc28c18249f`
-- **Response**: `200 OK`
-```json
-{
-  "success": true,
-  "message": "Product deleted successfully",
-  "data": {
-    "id": "6b00477d72de0dc28c18249f",
-    "name": "Wireless Mechanical Keyboard"
-  }
-}
-```
+1. **Cloud Database (MongoDB Atlas)**:
+   - Cluster Host: `cluster0.dveapgj.mongodb.net`
+   - Database: `product_db`
+   - Network Access: Whitelisted IP rule `0.0.0.0/0` to allow inbound connections from Render cloud instances.
+2. **Web Hosting (Render)**:
+   - Service Type: Web Service (Node Runtime)
+   - Continuous Integration: Automated builds from GitHub `main` branch.
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Environment Variables: Securely loaded `MONGODB_URI` and `NODE_ENV=production`.
 
 ---
 
-## 5. Deployment Architecture
+## 6. Verification & Test Evidence
 
-1. **Database Tier**: Hosted on **MongoDB Atlas** (M0 Free Tier). Configured with Network Access rule `0.0.0.0/0` to allow inbound connections from Render's cloud servers.
-2. **Application Tier**: Hosted on **Render** as a Node.js Web Service. Render monitors the GitHub `main` branch and triggers automatic zero-downtime builds upon any push.
-3. **Environment Security**: Sensitive keys (`MONGODB_URI`) are securely stored in Render Environment Variables and never checked into source control.
+### 6.1 Live Deployed API Output in Browser
+The live endpoint `https://product-crud-api-13j6.onrender.com/` returns the available endpoints directory:
+
+![Live Deployed API Output](screenshots/live_api_browser.png)
+
+### 6.2 Postman Test Execution
+Testing `GET /api/products/:id` via Postman against the live Render server:
+- **Status**: `200 OK`
+- **Response Time**: `373 ms`
+- **Test Results**: `2/2 Passed`
+- **Returned Data**: Contains created product record with valid `_id` and timestamps.
+
+![Postman Execution Screenshot](screenshots/postman_test_output.jpg)
 
 ---
 
-## 6. Testing Verification with Postman
+## 7. Conclusion
 
-A pre-configured Postman Collection (`postman_collection.json`) was used to execute tests. 
-The collection includes automated JavaScript test scripts verifying:
-- Response status codes (`200 OK`, `201 Created`).
-- Response body JSON schemas and properties.
-- Dynamic chaining: Automatically extracting `_id` from the `POST` response and passing it to subsequent `GET`, `PUT`, and `DELETE` requests.
-
-All test assertions passed successfully.
+The CRUD REST API was successfully designed, developed, deployed, and tested. The database connection with MongoDB Atlas allows scalable cloud persistence, Render provides 24/7 web hosting with automated GitHub deployment, and Postman confirms full test passage across all CRUD endpoints.
